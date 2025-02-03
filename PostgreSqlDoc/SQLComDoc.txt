@@ -1,0 +1,815 @@
+
+========================================= Подключение к базе данных через терминал ========================================
+
+
+1.Путь к PostgreSQL в MyForge:
+PATH = ~/Applications/Postgres.app/Contents/Versions/17/bin/psql 
+
+2.Подключение к базе данных, созданной в pgAdmin
+~/Applications/Postgres.app/Contents/Versions/17/bin/psql -h <localhost> -p <5432> -U <user_name>
+
+-h: Указывает хост, например, localhost.
+-p: Указывает порт, по умолчанию 5432.
+-U: Указывает имя пользователя для подключения.
+
+____________________________________________________________________________________________________________________________
+
+
+
+
+================================================== Основные команды psql ===================================================
+
+1.Просмотр списка баз данных: 							\list, \l
+
+2.Подключение к конкретной базе данных: 					\c <database_name>			
+
+3.Выход из psql:									\q
+Выход из таблицы:									q
+
+4.Выполнение SQL-скрипта из файла:						\i <PATH>/table_name.sql
+
+5.Сохранение вывода команды в файл:						\o <file_path>
+Чтобы прекратить запись в файл, используйте:				\o
+
+
+6.Просмотр содержимого баз дынных:						\d
+Пример вывода:
+
+        List of relations
+ Schema |  Name  | Type  |  Owner   
+--------+--------+-------+----------
+ public | person | table | postgres
+
+
+7.Просмотр структуры таблицы:							\d <relation_name>
+Пример вывода:
+                       Table "public.person"
+   Column   |         Type          | Collation | Nullable | Default 
+------------+-----------------------+-----------+----------+---------
+ id         | integer               |           |          | 
+ first_name | character varying(50) |           |          | 
+ last_name  | character varying(50) |           |          | 
+ age        | integer               |           |          | 
+ birth      | date                  |           |          | 
+
+
+
+
+8.Просмотр текущей базы данных: 						\conninfo
+
+9.Проверка текущего пользователя						SELECT current_user;
+
+10.Вывод значений в отдельной строке:						\x
+
+__________________________________________________________________________________________________________________________
+
+
+
+
+
+================================================== Основные SQL-операции =================================================
+~ CREATE DATABASE db_name
+
+~ CREATE TABLE table_name (
+Ы    column_name1 data_type [CONSTRAINT],
+    column_name2 data_type [CONSTRAINT],
+    ...
+);
+Очистка содержимого таблицы:				~ TRUNCATE TABLE table_name;
+
+
+
+
+================================================== ИЗМЕНЕНИЕ СТРУКТУР ТАБЛИЦЫ =============================================
+
+1.Добавление нового столбца:				~ ALTER TABLE table_name ADD column_name data_type;
+
+2.Удаление столбца из таблицы:				~ ALTER TABLE table_name DROP COLUMN column name;
+
+3.Переименование таблицы:					~ ALTER TABLE table_name RENAME TO new_table_name;
+
+4.Переименование столбца:					~ ALTER TBALE table_name RENAME COLUMN old_column_name TO new_column_name;
+
+5.Изменение типа данных столбца:			~ ALTER TABLE table_name ALTER COLUMN column_name TYPE new_data_type;
+
+6.Присваивание unique_constraint:			~ ALTER TABLE table_name ADD CONSTRAINT constraint_name UNIQUE(column_name);
+
+7.Добавление check constraint:				~ ALTER TABLE table_name ADD CONSTRAINT constraint_name CHECK(condition1, ...);
+
+----------------------------------------------
+
+
+
+
+
+================================================== КОМАНДЫ СЕЛЕКЦИИ ДАННЫХ ================================================
+
+~ SELECT * FROM table_name;										-Select ( * - all )		
+
+~ SELECT column1, column, ... FROM table_name;
+
+~ SELECT column1, column2, ... FROM table_name WHERE table_name = 'value';			-Where
+
+~ SELECT column1, column2, ... FROM table_name ORDER BY table_name ;				-Order by
+
+~ SELECT column1, column2, ... FROM table_name ORDER BY table_name ASC or DESK;		-Order by ASC or DESC
+
+~ SELECT DISTINCT column1, column2 FROM Customers;							-return only distinct (different) values.
+
+
+Using AND operation:
+~ SELECT column1, column2, ... FROM table_name WHERE column1 = 'value1' AND column2 = 'value2';
+
+Using OR op with AND:
+~ SELECT column1, column2, ... FROM table_name WHERE column1 = 'value1' AND (column2 = 'value2'  OR column3 = 'value3');	
+
+
+
+
+
+
+================================================== GROUP BY ====================================================
+
+
+The GROUP BY statement groups rows that have the same values into summary rows,
+like "find the number of customers in each country". The GROUP BY statement is
+often used with aggregate functions (COUNT(), MAX(), MIN(), SUM(), AVG()) to group
+the result-set by one or more columns.
+
+~ SELECT column_name(s) FROM table_name WHERE condition GROUP BY column_name(s) ORDER BY column_name(s);
+
+
+____________________________________________________________________________________________________
+
+
+
+-- ОПЕРАТОР COUNT(*) для подсчета повторяющихся значений в таблице:
+SELECT column_name, COUNT(*) FROM table_name GROUP BY column_name; 
+
+ПРИМЕР:
+Подсчет гражданинов разных стран из таблицы: 			~ SELECT country_of_birth, COUNT(*) FROM person GROUP BY country_of_birth;
+
+
+Также существуют операторы MIN(*), MAX(*), SUM(*), AVG(*):'
+
+For finding min value in column:					~ SELECT MIN(column_name) FROM table_name;
+
+For finding max value in column:					~ SELECT MAX(column_name) FROM table_name;	
+
+For finding average value in column without round:			~ SELECT AVG(column_name) FROM table_name;	
+ 
+For finding average value in column with round: 			~ SELECT ROUND(AVG(column_name)) FROM table_name;
+
+For finding sum of table value:						~ SELECT SUM(column_name) FROM table_name;
+
+
+
+Using SUM(), MAX(), MIN(), AVG() with combination GROUP BY to get values from column:
+
+~ SELECT column1 SUM(column2)... FROM table_name GROUP BY column1;
+
+<MAX(column2)>	
+<MIN(column2)>
+<AVG(column2)>
+
+
+
+Для вывода целой строки имеющим минимальное или максимальное значение:
+
+~ SELECT * FROM table_name WHERE column_name IN(SELECT MAX(column_name) FROM cars);
+
+~ SELECT * FROM table_name WHERE column_name IN(SELECT MAX(column_name) FROM cars);
+
+
+ПРИМЕР для вывода строки имеющий самый высокий и низкий ценник:
+
+~ SELECT * FROM cars WHERE price IN (SELECT MAX(price) FROM cars);
+
+~ SELECT * FROM cars WHERE price IN (SELECT MIN(price) FROM cars);
+
+
+____________________________________________________________________________________________________
+
+
+Болле подробно про эти операторы можно найти здесь:
+https://www.postgresql.org/docs/9.5/functions-aggregate.html
+
+____________________________________________________________________________________________________
+
+
+--ОПЕРАТОР HAVING. Используется вместе с оператром COUNT()
+~ SELECT column_name,  COUNT(*) FROM table_name GROUP_BY column_name HAVING COUNT > count;
+
+ПРИМЕР: Для нахождения гражданинов разных стран кол-во которого превышает 5:
+
+~ SELECT country_of_birth, COUNT(*) FROM person GROUP BY country_of_birth HAVING COUNT(*) > 5;
+HAVING COUNT(*) (<, >, =, <>) value  - здесь применяется условие группировки.Оператор 
+HAVING COUNT(*) > 5 подразумевает собой что при счете повторяющихся значений в таблице 
+должно быть больше 5
+
+____________________________________________________________________________________________________
+
+- Повторяющиеся значения в нескольких колонках: 
+~ SELECT name, email, COUNT(*) AS count FROM users GROUP BY name, email HAVING COUNT(*) > 1;
+
+____________________________________________________________________________________________________
+
+- Вывод только повторяющихся записей:
+
+~ SELECT * FROM users
+WHERE name IN (
+    SELECT name
+    FROM users
+    GROUP BY name
+    HAVING COUNT(*) > 1
+);
+
+
+
+
+================================================== COMPARISON OPERATORS ===========================================
+
+=    - equalo
+<>   - not equal
+
+
+
+
+================================================== LIMIT & OFFSET ==================================================
+
+~ SELECT column1, column2, ... FROM table_name LIMIT num_of_lim; 		- Предел на вывод данных
+
+~ SELECT column1, column2, ... FROM table_name OFFSET num_of_offset; 		- Вывод данных начиная с нумерации <num_of_offset>
+
+
+
+
+
+
+================================================== IN  ================================================== 
+
+~ SELECT column1, column2, ... FROM table_name WHERE column1, column2, ... IN (value1, value2, value3); --
+-- Вывод всех значений содержащихся в ~In по таблице column1, column2 ...
+
+
+
+
+
+
+================================================== BETWEEN ================================================== 
+
+~ SELECT column1, column2, ... FROM table_name WHERE column_name BETWEEN value1 AND value2;
+-- Вывод значений в входящих в интервал value1 и value2
+
+
+
+
+
+
+================================================== LIKE & iLIKE ================================================== 
+
+more specific information here: https://www.w3schools.com/sql/sql_like.asp
+and here: https://www.w3schools.com/sql/sql_wildcards.asp
+
+Разница между командами LIKE & iLike является, что iLike способен находить данные не зависимо от
+верхнего и нижнего регистра
+
+
+~ SELECT column1, column2, ... FROM table_name WHERE column_name LIKE '<pattern>';
+
+______________________________________________________________________________________________
+
+ Patterns and WildCards:
+
+%  				-Represents zero or more characters
+_ (underscore) 		-Represents a single character
+
+
+---------- Using the % Wildcard ----------
+Return all data that starts with the pattern 'st': 		~ SELECT * FROM table_name WHERE column_name LIKE 'st%';
+	
+Return all data that ends with the pattern 'es': 			~ SELECT * FROM table_name WHERE column_name LIKE '%es';
+
+Return all data that contains the pattern 'mer':			~ SELECT * FROM table_name WHERE column_name LIKE '%mer%';
+
+________________________________________________________________________________________________
+
+
+---------------------- Using the _ Wildcard ----------------------
+
+Обозначение пустого место для символа. Кол-во ( _ ) длина для пустого символа 
+
+Return all data with a column_name starting with any character, followed by "value":	 ~ SELECT * FROM column WHERE table_name LIKE '__ance';
+
+ПРИМЕР:
+Return all customers with a City starting with any character, followed by "ondon":	 ~ SELECT * FROM Customers WHERE City LIKE '_ondon';	
+
+ПРИМЕР:
+customers with a City starting with "L", followed by any 3 characters, ending with "on": ~ SELECT * FROM Customers WHERE City LIKE 'L___on';
+
+
+
+
+
+
+================================================== ARITHMETIC OPERATORS - ROUND ================================================
+
+Using arithmetic operators to transform data:
+
+SELECT column1, column2, column3, column_name (from column in table) <arithmetic operations> AS new_column_name FROM table_name; 
+
+ПРИМЕР необходимо предоставить скидку транспортным средствам в базе данных cars.
+Для большей наглядности добавим таблицу с выводом итогого значения:
+
+SELECT make, model, model_year, price, price-(price * 0.6) AS price_with_discount FROM cars;
+
+
+
+ВЫВОД:
+
+     make      |        model        | model_year |  price   | price_with_discount 
+---------------+---------------------+------------+----------+---------------------
+ Bentley       | Continental GTC     | 2009       | 76064.62 |               45639
+ Plymouth      | Voyager             | 1993       | 24960.72 |               14976
+ Honda         | Element             | 2006       | 26365.29 |               15819
+ Hyundai       | Excel               | 1994       | 60169.60 |               36102
+ Honda         | S2000               | 2006       | 51357.14 |               30814
+
+
+
+
+
+
+
+================================================== UNIQUE CONSTRAINTS =================================================
+
+UNIQUE CONSTRAINTS - свойство таблицы обеспечивающее уникальность данных в таблице, предотвращая появления дубликатов.
+Данный подход является более эффективным на наличие дубликатов в базе данных, нежели чем отправка запроса с сервера и,
+сравнивание на сходимость (дубликат). Для лучшей эффективности ПО использовать данный функционал!!!
+
+Все ограничения к заполнению к таблице CONSTRAINTS необходимо добавить немедленно после созданий таблицы данных!!!
+
+________________________________________________________________________________________________________________________
+
+
+~ ALTER TABLE table_name ADD CONSTRAINT constraint_name UNUQUE(column_name); 	
+
+
+ПРИМЕР: Необходимо добавить свойство таблице person на уникальность email address
+~ ALTER TABLE table_name ADD CONSTRAINT unique_email_address UNIQUE(email);
+
+После вывода структуры таблицы \d видим что unique_email_address constraint был успешно добавлен:
+
+ id               | bigint                 |           | not null | nextval('person_id_seq'::regclass)
+ first_name       | character varying(50)  |           | not null | 
+ last_name        | character varying(50)  |           | not null | 
+ gender           | character varying(10)  |           | not null | 
+ date_of_birth    | date                   |           | not null | 
+ email            | character varying(150) |           | not null | 
+ country_of_birth | character varying(100) |           |          | 
+Indexes:
+    "person_pkey" PRIMARY KEY, btree (id)
+    "unique_email_address" UNIQUE CONSTRAINT, btree (email)
+
+
+
+________________________________________________________________________________________________________________________
+
+
+========================= UNIQUE CONSTRAINTS ON TABLE COMPLETION
+
+
+-Ограничение на заполнение таблицы иными данными не соответствующим требованию.
+
+~ ALTER TABLE table_name ADD CONSTRAINT constraint_name CHECK (condition1, condition2, ...);
+
+
+ПРМИЕР: Необходимо добавить ограничение на выбор иного гендера кроме ('Male', 'Female', ...) в таблице person.
+
+~ ALTER TABLE person ADD CONSTRAINT gender_constraint CHECK (gender = 'Male' OR gender='Female', OR ...);
+
+Вывод содержимого таблицы:
+
+Check constraints:
+    "gender_constraint" CHECK (gender::text = 'Bigender'::text OR gender::text = 'Male'::text OR gender::text = 'Female'::text OR gender::text = 'Polygender'::text OR gender::text = 'Non-binary'::text OR gender::text = 'Agender'::text)
+
+
+
+
+________________________________________________________________________________________________________________________
+              
+
+
+
+
+================================================== SQL KEYWORDS ==================================================
+
+
+========================= AS
+ 
+The AS command is used to rename a column or table with an alias.
+An alias only exists for the duration of the query.
+
+~ SELECT column1 AS new_column1_name, column2 AS new_column2_name FROM table_name;
+
+-----------------------------------
+
+ПРМИЕР: обычно используется для сокращения названия или добавления новой таблицы после выполненной
+арифметической операции для визуализации.
+
+Для сокращения названия:
+~ SELECT CustomerID AS ID, CustomerName AS Customer FROM Customers;
+
+Для визуализации выполненной арифметической операции:
+~ SELECT make, model, model_year, price, price-(price * 0.6) AS price_with_discount FROM cars;
+
+
+
+
+
+========================= COALESCE
+
+Команда используется для определения значений null (отсутствующих) в таблице:
+
+~ SELECT COALESCE(column_name, 'output text if table value is null') FROM table_name;
+
+-----------------------------------
+
+ПРИМЕР: Необходимо вывести в таблице пользователей у которых отсутствует поле Country:
+
+SELECT COALESCE(country_of_birth, 'No country') AS users_hasnt_country FROM person:
+
+ВЫВОД:
+         users_hasnt_country         
+--------------------------
+ NO COUNTRY
+ NO COUNTRY
+ Brazil
+ Indonesia
+ China
+ China
+ Poland
+
+
+
+========================= EXTRACTING DATE
+~ SELECT EXTRACT(YEAR FROM NOW());			-Current year
+
+~ SELECT EXTRACT(MONTH FROM NOW());			-Current month
+
+~ SELECT EXTRACT(DOW FROM NOW());			-Current day of week
+
+~ SELECT EXTRACT(DAY FROM NOW());			-Current day;	
+
+~ AGE(NOW(), table_name_with_users_birthday);	-Определение возраста по имеющейся таблице date_of_birth
+
+
+
+
+========================= IS NULL
+
+Для проверка значений таблицы на null
+
+~SELECT * FROM table_name WHERE column IS NULL;  
+
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+
+
+
+
+
+====================================================== DELETE ==================================================
+
+
+~ DELETE FROM table_name <condition...>;
+
+
+Удаление повторяющихся данных в таблице:
+
+~ DELETE FROM table_name WHERE column_name IN (SELECT column_name FROM table_name GROUP BY column_name HAVING COUNT(*) > 1);
+
+
+ПРИМЕР: Удалить все данные из таблицы где повторяется значение email:
+
+~ DELETE FROM person WHERE email IN(SELECT email FROM person GROUP BY email HAVING COUNT(*) > 1);
+
+
+Очищение содержимого таблицы:
+
+~ DELETE FROM table_name;	
+~ TRUNCATE TABLE table_name;
+
+
+Удаление базы данных:
+
+~ DROP DATABASE db_name;
+
+
+
+
+====================================================== UPDATE ==================================================
+
+Updating with condition:
+~ UPDATE table_name SET column1 = 'value1', column2 = 'value2', column3 = 'value3' WHERE <condition>; 
+
+
+
+
+
+
+================================================ FOREIGN KEYS ============================================
+
+// ADDING RELATIONSHIPS BETWEEN TBALES.
+
+Установка связи между базами данных выполняется следующим образом:
+
+  1.Добавление столбца с типом REFERENCES для возможности установки связи с другими таблицами.
+	// Общий вид структуры создания таблицы и установление связи:
+
+	~ CREATE TABLE table_to_relationship (
+		id BIGSERIAL NOT NULL PRIMARY KEY,
+		column1 TYPE NOT NULL,
+		column2 TYPE NOT NULL,
+		column3 TYPE NOT NULL,
+		...
+	);
+
+
+	~ CREATE TABLE table (
+		id BIGSERIAL NOT NULL PRIMARY KEY,
+		column1 TYPE NOT NULL,
+		column2 TYPE NOT NULL,
+		column3 TYPE NOT NULL,
+		relation_name TYPE (if with id use: BIGINT) REFERENCES table_to_relationship (column_name (We use id))
+	);
+
+
+_________________________________________________________________________________________________________________
+
+
+	ПРИМЕР: Имеется таблица person и car. Необходимо установить связь между person и первичным
+	ключом cars.	Важно! Установку связей выполнять при создании самой таблицы.
+
+
+	CREATE TABLE car(
+		id BIGSERIAL NOT NULL PRIMARY KEYб
+		make VARCHAR(100) NOT NULL
+		model VARCHAR(100) NOT NULL,
+		made_in BIGINT REFERENCES car (id);	
+	);
+
+		
+	CREATE TABLE person(
+		id BIGSERIAL NOT NULL PRIMARY KEYб
+		name VARCHAR(100) NOT NULL
+		email VARCHAR(100) NOT NULL,
+		car_id BIGINT REFERENCES car (id);	
+
+	);
+
+
+Вывод содержимого таблицы person. Столбец FOREIGN KEY car_id REFERENCES был успешно добавлен:
+
+	      Column      |         Type          | Collation | Nullable |              Default               
+	------------------+-----------------------+-----------+----------+------------------------------------
+ 	id               | bigint                |           | not null | nextval('person_id_seq'::regclass)
+ 	first_name       | character varying(50) |           | not null | 
+ 	last_name        | character varying(50) |           | not null | 
+ 	email            | character varying(50) |           | not null | 
+ 	date_of_birth    | date                  |           | not null | 
+ 	country_of_birth | character varying(50) |           | not null | 
+ 	car_id           | bigint                |           |          | 
+	Indexes:
+    	  "person_pkey" PRIMARY KEY, btree (id)
+   	  "car_id_constraint" UNIQUE CONSTRAINT, btree (car_id)
+	Foreign-key constraints:
+    		"person_car_id_fkey" FOREIGN KEY (car_id) REFERENCES car(id)
+
+
+
+							Table person
+	
+	id | first_name | last_name  |           email           | date_of_birth | country_of_birth | car_id 
+	----+------------+------------+---------------------------+---------------+------------------+--------
+  	1 | Frank      | Jayume     | fjayume0@disqus.com       | 2024-07-30    | France           |       
+  	2 | Arlyn      | Trustrie   | atrustrie1@jalbum.net     | 2024-07-31    | Egypt            |       
+
+
+
+
+
+
+================================================ JOIN TYPES ================================================
+
+
+
+================================================ INNER JOIN ================================================
+INNER JOIN (внутреннее соединение)  A ∩ B.
+
+# Результат пересечений 2ух множеств
+
+
+Для соединение таблиц по определенным критериям:
+~ SELECT * FROM table1 JOIN table_with_relationship ON table1.column = table_with_relationship.column;
+
+
+ПРМИЕР: Соединение таблиц по критерию наследования. Как известно ранее мы пользовались
+соединением данных из таблицы между друг другом, теперь же на основе JOIN выведем наследованные данные.
+
+~ SELECT * FROM person JOIN car ON person.car_id = car.id;
+
+Вывод:
+
+----+------------+------------+---------------------------+---------------+------------------+--------+----+------------+---------+-
+  2 | Arlyn      | Trustrie   | atrustrie1@jalbum.net     | 2024-07-31    | Egypt            |      2 |  2 | Mitsubishi | Starion |  
+  3 | Asher      | Woodger    | awoodger2@mit.edu         | 2024-10-16    | Indonesia        |      3 |  3 | Mazda      | Mazda5  |  
+  4 | Rica       | MacGarrity | rmacgarrity3@webmd.com    | 2024-07-05    | Russia           |      4 |  4 | Volkswagen | Golf    |  
+  5 | Elmore     | Randles    | erandles4@dagondesign.com | 2024-02-25    | Poland           |      5 |  5 | Toyota     | Celica  |
+  7 | Torry      | Fancy      | tfancy6@usatoday.com      | 2024-06-20    | South Korea      |      6 |  6 | Lexus      | LX      | 
+  6 | Jonathon   | Hulburd    | jhulburd5@toplist.cz      | 2024-12-05    | Panama           |      7 |  7 | Hyundai    | Genesis |
+  1 | Frank      | Jayume     | fjayume0@disqus.com       | 2024-07-30    | France           |      8 |  8 | Mitsubishi | Montero | 
+
+
+(Из примера можно увидеть что, при выводе результата соединений выводятся только те которые имеют связь.)
+
+
+
+
+
+================================================ LEFT JOIN ================================================
+ 
+LEFT JOIN (левое соединение)  A ∪ ( A ∩ B )
+
+SELECT * FROM table1 LEFT JOIN table2 ON table1.rel_id = table2.id;
+
+__________________________________________________________________________________________________
+
+
+ПРИМЕР: Необходимо вывести данные из таблицы person и с таблицей в котором установлена связь:
+
+SELECT * FROM person LEFT JOIN cars ON person.car_id = car.id;
+
+Вывод:
+
+id | first_name | last_name  |           email           | date_of_birth | country_of_birth | car_id | id |    make    |  model  |
+----+------------+------------+---------------------------+---------------+------------------+--------+----+------------+---------+
+  2 | Arlyn      | Trustrie   | atrustrie1@jalbum.net     | 2024-07-31    | Egypt            |      2 |  2 | Mitsubishi | Starion |
+  3 | Asher      | Woodger    | awoodger2@mit.edu         | 2024-10-16    | Indonesia        |      3 |  3 | Mazda      | Mazda5  | 
+  4 | Rica       | MacGarrity | rmacgarrity3@webmd.com    | 2024-07-05    | Russia           |      4 |  4 | Volkswagen | Golf    |  
+  5 | Elmore     | Randles    | erandles4@dagondesign.com | 2024-02-25    | Poland           |      5 |  5 | Toyota     | Celica  | 
+  7 | Torry      | Fancy      | tfancy6@usatoday.com      | 2024-06-20    | South Korea      |      6 |  6 | Lexus      | LX      | 
+  6 | Jonathon   | Hulburd    | jhulburd5@toplist.cz      | 2024-12-05    | Panama           |      7 |  7 | Hyundai    | Genesis | 
+  1 | Frank      | Jayume     | fjayume0@disqus.com       | 2024-07-30    | France           |      8 |  8 | Mitsubishi | Montero | 
+ 10 | Glynda     | Benettelli | gbenettelli9@springer.com | 2024-08-29    | Estonia          |        |    |            |         |  
+  9 | Roanne     | Jesper     | rjesper8@ycombinator.com  | 2024-02-01    | China            |        |    |            |         |       
+  8 | Quintana   | Dodsworth  | qdodsworth7@a8.net        | 2024-03-28    | Portugal         |        |    |            |         |      
+(10 rows)
+
+
+_________________________________________________________________________________________________________________
+
+(
+	Из вывода четко можно заметить что, вывод также был воспроизведен по данными которые не имели связи с другой таблицей.
+	В этом и заключается принцип соединений LEFT JOIN и его аналога RIGHT JOIN. По LEFT JOIN выводятся соединения из
+	1 ой таблицы которые не имеют связи со 2, по RIGHT JOIN будут воспроизведены данные из 2ой таблицы которые не имеют
+	связи с 1. По примеру выше в LEFT JOIN будут выведены пользователи которые не имеют транспортного средства,	
+	в RIGHT JOIN будут выведены транспортные средства не имеющий пользователя, причем обе с комбинацией данных
+	которые имеют связь с обеих сторон.
+)
+__________________________________________________________________________________________________________________
+
+
+
+================================================ RIGHT JOIN ================================================
+
+RIGHT JOIN (правое соединение) B ∪ ( A ∩ B )
+
+~ SELECT * FROM table1 RIGHT JOIN table2 ON table1.rel_id = table2.id;
+
+
+
+Из примера выше выведем данные.
+
+~ SELECT * FROM person RIGHT JOIN car ON person.car_id = car.id;
+
+Вывод:
+ id | first_name | last_name  |           email           | date_of_birth | country_of_birth | car_id | id |    make    |  
+----+------------+------------+---------------------------+---------------+------------------+--------+----+------------+
+    |            |            |                           |               |                  |        |  1 | Honda      | 
+  2 | Arlyn      | Trustrie   | atrustrie1@jalbum.net     | 2024-07-31    | Egypt            |      2 |  2 | Mitsubishi | 
+  3 | Asher      | Woodger    | awoodger2@mit.edu         | 2024-10-16    | Indonesia        |      3 |  3 | Mazda      |
+  4 | Rica       | MacGarrity | rmacgarrity3@webmd.com    | 2024-07-05    | Russia           |      4 |  4 | Volkswagen |
+  5 | Elmore     | Randles    | erandles4@dagondesign.com | 2024-02-25    | Poland           |      5 |  5 | Toyota     | 
+  7 | Torry      | Fancy      | tfancy6@usatoday.com      | 2024-06-20    | South Korea      |      6 |  6 | Lexus      | 
+  6 | Jonathon   | Hulburd    | jhulburd5@toplist.cz      | 2024-12-05    | Panama           |      7 |  7 | Hyundai    | 
+
+
+ 
+(Как заметно из 1 строки было выведено транспортное средство не имеющая пользователя).
+
+
+--------------------------------------------------
+
+Выбор необходимых таблицы для вывода на основе JOIN:
+
+// Для соединения воспользуемся id от столбца
+
+~ SELECT table1.column1, table1.column2, table2.column1, table2.column2 FROM table1 JOIN table2 ON table1.id_rel = table2.id;
+
+__________________________________________________________________________________________________
+
+
+ПРИМЕР: Необходимо соединить столбец first_name, last_name, с таблицы person и make, model и model_year с таблицы car
+
+SELECT person.first_name, person.last_nmae, car.make, car.model, car.model_year FROM person JOIN car ON person.car_id = car.id; 
+
+
+
+
+================================================ INSTALLING EXTENSIONS ================================================
+
+To check available extensions use:					~ SELECT * FROM pg_available_extensions;
+To install extension:							~ CREATE EXTENSION IF NOT EXISTS <extension_name>;
+
+More useful extension:
+<"uuid-ossp">
+
+		
+
+
+
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=# РЕЗЕРВНОЕ КОПИРОВАНИЕ ДАННЫХ (БЕКАП) #=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#
+
+
+Бэкап (backup) — это процесс создания копии данных, которая используется для их восстановления в случае потери, повреждения или уничтожения оригиналов. Основная цель бэкапа — обеспечить защиту данных от различных рисков, таких как аппаратные сбои, вирусные атаки, ошибки пользователей или природные катастрофы.
+Как за основу бекап файла будем пользоваться файлом типа csv.
+
+
+Экспорт бекапа:
+
+~ COPY table_name TO '/path/to/your_file.csv' WITH (FORMAT CSV, HEADER);
+
+
+Импорт бекапа:
+
+~ COPY table_name FROM '/path/to/your_file.csv' WITH (FORMAT CSV, HEADER);
+
+
+Также вместо table_name в скобках можно передать sql запрос:
+
+~ COPY (SELECT * FROM table_name) TO /path/to/your_file.csv' WITH (FORMAT CSV, HEADER);
+
+
+
+___________________________________________________________________________________________________________________________
+
+
+Полезные ресурсы:
+
+Документация PostgreSQL по типам данных: https://www.postgresql.org/docs/current/datatype.html
+
+Генерация тестовых данных: https://www.mockaroo.com	
+
+Подробнее про Primary keys: https://youtu.be/qw--VYLpxG4?si=ykIqdfjBv5aXbH9f (in: 2:29:24)	
+
+Принцип работы SERIAL & SEQEUNCES, также про обновление sequence: ttps://youtu.be/qw--VYLpxG4?si=ykIqdfjBv5aXbH9f (in 3:50:43)
+
+https://www.postgresql.org/docs/9.5/functions-aggregate.html
+
+https://www.w3schools.com/sql/sql_like.asp
+
+https://www.w3schools.com/sql/sql_wildcards.asp
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
